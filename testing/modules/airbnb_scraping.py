@@ -5,6 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
 from bs4 import BeautifulSoup
 from string import digits
+from threading import Thread
 
 def scrape(city, checkin, checkout, adults, children, babies):
 
@@ -68,19 +69,51 @@ def scrape(city, checkin, checkout, adults, children, babies):
     wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_fhph4u']")))
     result = driver.find_element_by_xpath("//div[@class='_fhph4u']")
 
-
     soup_all_results = BeautifulSoup(result.get_attribute("innerHTML"), "html.parser")
+    list_rows = soup_all_results.find_all('div', { 'class': '_8ssblpx' })
 
+    threads = []
 
-    for row in soup_all_results.find_all('div', { 'class': '_8ssblpx' }):
-        refine(row)
+    for row in list_rows:
+        threads.append(Thread(target=refine, args=(row,)))
+
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
 
     driver.quit()
+
 
 def refine(row):
     # url
     url = "https://www.airbnb.cl" + row.find_all('a', href=True)[0]['href']
 
+    # descripción y lugar (requiere entrar al alojamiento)
+
+    single_result_chrome_options = webdriver.ChromeOptions()
+    single_result_chrome_options.add_argument("--window-size=1920,1080")
+    single_result_chrome_options.add_argument("--start-maximized")
+    single_result_chrome_options.add_argument('--headless')
+    single_result_driver = webdriver.Chrome(options = single_result_chrome_options)
+    wait = WebDriverWait(single_result_driver, 5)
+
+    single_result_driver.get(url)
+
+    wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_eeq7h0']")))
+    wait.until(EC.presence_of_element_located((By.XPATH,"//h2[@class='_14i3z6h' and contains(text(),'noche en')]")))
+
+    soup_description = single_result_driver.find_element_by_xpath("//div[@class='_eeq7h0']")
+    soup_location = single_result_driver.find_element_by_xpath("//h2[@class='_14i3z6h' and contains(text(),'noche en')]")
+
+    description = soup_description.text
+
+    location = soup_location.text.replace(" noches en ", '').replace(" noche en ", '').translate(str.maketrans('', '', digits))
+    
+    single_result_driver.quit()
+
+    ## el resto de las variables ##
     # nombre
     name = row.find_all('div', { 'class': '_1c2n35az' })[0].text
 
@@ -110,29 +143,7 @@ def refine(row):
     else:
         rating = None
 
-    # descripción y lugar (requiere entrar al alojamiento)
-
-    single_result_chrome_options = webdriver.ChromeOptions()
-    single_result_chrome_options.add_argument("--window-size=1920,1080")
-    single_result_chrome_options.add_argument("--start-maximized")
-    single_result_chrome_options.add_argument('--headless')
-    single_result_driver = webdriver.Chrome(options = single_result_chrome_options)
-    wait = WebDriverWait(single_result_driver, 5)
-
-    single_result_driver.get(url)
-
-    wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_eeq7h0']")))
-    wait.until(EC.presence_of_element_located((By.XPATH,"//h2[@class='_14i3z6h' and contains(text(),'noche en')]")))
-
-    soup_description = single_result_driver.find_element_by_xpath("//div[@class='_eeq7h0']")
-    soup_location = single_result_driver.find_element_by_xpath("//h2[@class='_14i3z6h' and contains(text(),'noche en')]")
-
-    description = soup_description.text
-
-    location = soup_location.text.replace(" noches en ", '').replace(" noche en ", '').translate(str.maketrans('', '', digits))
     
-
-    single_result_driver.quit()
 
         
     print("nombre de la oferta: " + name)
