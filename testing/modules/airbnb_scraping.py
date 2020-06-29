@@ -5,14 +5,33 @@ from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
 from bs4 import BeautifulSoup
 from string import digits
-from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
+import os
 
 def scrape(city, checkin, checkout, adults, children, babies):
+
+    result = search(city, checkin, checkout, adults, children, babies)
+
+    soup_all_results = BeautifulSoup(result.get_attribute("innerHTML"), "html.parser")
+    list_rows = soup_all_results.find_all('div', { 'class': '_8ssblpx' })
+
+    nthreads = os.cpu_count()
+    if nthreads > 2:
+        nthreads = nthreads - 1
+
+    executor = ThreadPoolExecutor(max_workers = nthreads)
+
+    for row in list_rows:
+        executor.submit(refine, row)
+
+
+def search(city, checkin, checkout, adults, children, babies):
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument('--headless')
+    chrome_options.add_argument('log-level=3')
     driver = webdriver.Chrome(options = chrome_options)
     wait = WebDriverWait(driver, 5)
 
@@ -62,58 +81,44 @@ def scrape(city, checkin, checkout, adults, children, babies):
     searchButton = driver.find_element_by_xpath("//button[@data-testid='structured-search-input-search-button']")
     searchButton.click()
 
-    ##########################################
-    ## Ya estamos en la lista de resultados ##
-    ##########################################
-
+    # lista obtenida por la busqueda
     wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_fhph4u']")))
     result = driver.find_element_by_xpath("//div[@class='_fhph4u']")
 
-    soup_all_results = BeautifulSoup(result.get_attribute("innerHTML"), "html.parser")
-    list_rows = soup_all_results.find_all('div', { 'class': '_8ssblpx' })
-
-    threads = []
-
-    for row in list_rows:
-        threads.append(Thread(target=refine, args=(row,)))
-
-    for thread in threads:
-        thread.start()
-
-    for thread in threads:
-        thread.join()
-
-    driver.quit()
-
+    return result
 
 def refine(row):
-    # url
+
+    # extraer url
+    print("thread creado")
     url = "https://www.airbnb.cl" + row.find_all('a', href=True)[0]['href']
 
-    # descripción y lugar (requiere entrar al alojamiento)
+    # extraer descripción y lugar (requiere entrar al alojamiento)
 
     single_result_chrome_options = webdriver.ChromeOptions()
     single_result_chrome_options.add_argument("--window-size=1920,1080")
     single_result_chrome_options.add_argument("--start-maximized")
     single_result_chrome_options.add_argument('--headless')
+    single_result_chrome_options.add_argument('log-level=3')
     single_result_driver = webdriver.Chrome(options = single_result_chrome_options)
-    wait = WebDriverWait(single_result_driver, 5)
+    wait = WebDriverWait(single_result_driver, 10)
 
     single_result_driver.get(url)
 
-    wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_eeq7h0']")))
-    wait.until(EC.presence_of_element_located((By.XPATH,"//h2[@class='_14i3z6h' and contains(text(),'noche en')]")))
 
-    soup_description = single_result_driver.find_element_by_xpath("//div[@class='_eeq7h0']")
+    wait.until(EC.presence_of_element_located((By.XPATH,"//h2[@class='_14i3z6h' and contains(text(),'noche en')]")))
     soup_location = single_result_driver.find_element_by_xpath("//h2[@class='_14i3z6h' and contains(text(),'noche en')]")
+
+    wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_eeq7h0']")))
+    soup_description = single_result_driver.find_element_by_xpath("//div[@class='_eeq7h0']")
 
     description = soup_description.text
 
     location = soup_location.text.replace(" noches en ", '').replace(" noche en ", '').translate(str.maketrans('', '', digits))
-    
+
     single_result_driver.quit()
 
-    ## el resto de las variables ##
+    ## extraer el resto de las variables ##
     # nombre
     name = row.find_all('div', { 'class': '_1c2n35az' })[0].text
 
