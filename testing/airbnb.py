@@ -5,9 +5,17 @@ from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
 from bs4 import BeautifulSoup
 import requests
+from string import digits
 
-driver = webdriver.Chrome()
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--window-size=1920,1080")
+chrome_options.add_argument("--start-maximized")
+chrome_options.add_argument('--headless')
+driver = webdriver.Chrome(options = chrome_options)
+
+# driver = webdriver.Chrome()
 wait = WebDriverWait(driver, 5)
+
 driver.get('https://www.airbnb.cl/')
 
 city = "Viña del Mar"
@@ -17,9 +25,8 @@ adults = 2
 children = 2
 babies = 1
 
-sleep(2)
-
 # lugar
+sleep(1)
 wait.until(EC.presence_of_element_located((By.XPATH,"//input[@data-testid='structured-search-input-field-query']")))
 locationBox = driver.find_element_by_xpath("//input[@data-testid='structured-search-input-field-query']")
 locationBox.send_keys(city)
@@ -69,17 +76,27 @@ searchButton.click()
 wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_fhph4u']")))
 result = driver.find_element_by_xpath("//div[@class='_fhph4u']")
 
+# driver.close()
+
 soup_all_results = BeautifulSoup(result.get_attribute("innerHTML"), "html.parser")
 
 
-data = []
 
 for row in soup_all_results.find_all('div', { 'class': '_8ssblpx' }):
 
+    # url
     url = "https://www.airbnb.cl" + row.find_all('a', href=True)[0]['href']
+
+    # nombre
     name = row.find_all('div', { 'class': '_1c2n35az' })[0].text
+
+    # categoría
     category = row.find_all('div', { 'class': '_167qordg' })[0].text.split(' en ')[0]
+
+    # servicios
     services = row.find_all('div', { 'class': '_kqh46o' })[1].text.split(' · ')
+
+    # precio total
     total_price = row.find_all('button', { 'class': '_ebe4pze' })[0].text.replace("Total: $", '').replace('.', '').replace("Mostrar los detalles", '').replace("CLP", '')
 
     if(row.find_all('div', { 'class': '_snufp9' })):
@@ -87,6 +104,7 @@ for row in soup_all_results.find_all('div', { 'class': '_8ssblpx' }):
     else:
         super_host = False
 
+    # precio por noche
     nightly_price = row.find_all('span', { 'class': '_1p7iugi' })[0].text.replace("Precio:", '').replace("  CLP por noche", '').replace('.','').replace("CLP", '')
     i = len(nightly_price)-1
     while(nightly_price[i] != '$'):
@@ -96,9 +114,35 @@ for row in soup_all_results.find_all('div', { 'class': '_8ssblpx' }):
     if(row.find_all('span', { 'class': '_10fy1f8' })):
         rating = float(row.find_all('span', { 'class': '_10fy1f8' })[0].text.replace(",", "."))
     else:
-        rating = -1
+        rating = None
+
+    # descripción y lugar (requiere entrar al alojamiento)
+
+    single_result_chrome_options = webdriver.ChromeOptions()
+    single_result_chrome_options.add_argument("--window-size=1920,1080")
+    single_result_chrome_options.add_argument("--start-maximized")
+    single_result_chrome_options.add_argument('--headless')
+    single_result_driver = webdriver.Chrome(options = single_result_chrome_options)
+    wait = WebDriverWait(single_result_driver, 5)
+
+    single_result_driver.get(url)
+
+    wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_eeq7h0']")))
+    wait.until(EC.presence_of_element_located((By.XPATH,"//h2[@class='_14i3z6h' and contains(text(),'noche en')]")))
+
+    soup_description = single_result_driver.find_element_by_xpath("//div[@class='_eeq7h0']")
+    soup_location = single_result_driver.find_element_by_xpath("//h2[@class='_14i3z6h' and contains(text(),'noche en')]")
+
+    description = soup_description.text
+
+    location = soup_location.text.replace(" noches en ", '').replace(" noche en ", '').translate(str.maketrans('', '', digits))
+
+
+    single_result_driver.quit()
+
         
     print("nombre de la oferta: " + name)
+    print("lugar: " + location)
     print("url: " + url)
     print("categoría: " + category)
     print("es superanfitrión: " + str(super_host))
