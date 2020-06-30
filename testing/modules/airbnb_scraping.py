@@ -5,8 +5,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
 from bs4 import BeautifulSoup
 from string import digits
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
+from .classes import Hosting
 
 def scrape(city, checkin, checkout, adults, children, babies):
 
@@ -15,14 +16,23 @@ def scrape(city, checkin, checkout, adults, children, babies):
     soup_all_results = BeautifulSoup(result.get_attribute("innerHTML"), "html.parser")
     list_rows = soup_all_results.find_all('div', { 'class': '_8ssblpx' })
 
+    ### Threading ###
+
     nthreads = os.cpu_count()
     if nthreads > 2:
         nthreads = nthreads - 1
 
-    executor = ThreadPoolExecutor(max_workers = nthreads)
+    with ThreadPoolExecutor(max_workers = nthreads) as executor:
+        hosting_thread = {executor.submit(refine, row): row for row in list_rows}
 
-    for row in list_rows:
-        executor.submit(refine, row)
+    hosting = []
+    for row in as_completed(hosting_thread):
+        item = row.result()
+        hosting.append(item)
+    
+    for i in range(len(hosting)):
+        print(hosting[i])
+
 
 
 def search(city, checkin, checkout, adults, children, babies):
@@ -148,17 +158,7 @@ def refine(row):
     else:
         rating = None
 
-    
+    ### crear objeto Hosting ###
+    new_hosting = Hosting(name, location, url, category, super_host, services, nightly_price, total_price, rating, description)
 
-        
-    print("nombre de la oferta: " + name)
-    print("lugar: " + location)
-    print("url: " + url)
-    print("categoría: " + category)
-    print("es superanfitrión: " + str(super_host))
-    print("servicios: " + str(services))
-    print("precio por noche: " + str(nightly_price))
-    print("precio total: " + str(total_price))
-    print("calificación: " + str(rating))
-    print("descripción: " + description)
-    print("")
+    return new_hosting
