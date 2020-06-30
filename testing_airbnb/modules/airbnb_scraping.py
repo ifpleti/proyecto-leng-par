@@ -27,8 +27,12 @@ def scrape(city, checkin, checkout, adults, children, babies):
 
     hosting = []
     for row in as_completed(hosting_thread):
-        item = row.result()
-        hosting.append(item)
+        try:
+            item = row.result()
+            hosting.append(item)
+        except:
+            print("no se creó el objeto")
+        
     
     for i in range(len(hosting)):
         print(hosting[i])
@@ -99,36 +103,6 @@ def search(city, checkin, checkout, adults, children, babies):
 
 def refine(row):
 
-    # extraer url
-    print("thread creado")
-    url = "https://www.airbnb.cl" + row.find_all('a', href=True)[0]['href']
-
-    # extraer descripción y lugar (requiere entrar al alojamiento)
-
-    single_result_chrome_options = webdriver.ChromeOptions()
-    single_result_chrome_options.add_argument("--window-size=1920,1080")
-    single_result_chrome_options.add_argument("--start-maximized")
-    single_result_chrome_options.add_argument('--headless')
-    single_result_chrome_options.add_argument('log-level=3')
-    single_result_driver = webdriver.Chrome(options = single_result_chrome_options)
-    wait = WebDriverWait(single_result_driver, 10)
-
-    single_result_driver.get(url)
-
-
-    wait.until(EC.presence_of_element_located((By.XPATH,"//h2[@class='_14i3z6h' and contains(text(),'noche en')]")))
-    soup_location = single_result_driver.find_element_by_xpath("//h2[@class='_14i3z6h' and contains(text(),'noche en')]")
-
-    wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_eeq7h0']")))
-    soup_description = single_result_driver.find_element_by_xpath("//div[@class='_eeq7h0']")
-
-    description = soup_description.text
-
-    location = soup_location.text.replace(" noches en ", '').replace(" noche en ", '').translate(str.maketrans('', '', digits))
-
-    single_result_driver.quit()
-
-    ## extraer el resto de las variables ##
     # nombre
     name = row.find_all('div', { 'class': '_1c2n35az' })[0].text
 
@@ -157,6 +131,39 @@ def refine(row):
         rating = float(row.find_all('span', { 'class': '_10fy1f8' })[0].text.replace(",", "."))
     else:
         rating = None
+
+    # extraer url
+    url = "https://www.airbnb.cl" + row.find_all('a', href=True)[0]['href']
+
+    # extraer descripción y lugar (requiere entrar al alojamiento)
+
+    single_result_chrome_options = webdriver.ChromeOptions()
+    single_result_chrome_options.add_argument("--window-size=1920,1080")
+    single_result_chrome_options.add_argument("--start-maximized")
+    single_result_chrome_options.add_argument('--headless')
+    single_result_chrome_options.add_argument('log-level=3')
+    single_result_driver = webdriver.Chrome(options = single_result_chrome_options)
+    wait = WebDriverWait(single_result_driver, 10)
+
+    single_result_driver.get(url)
+
+    sleep(2)
+    wait.until(EC.presence_of_element_located((By.XPATH,"//h2[@class='_14i3z6h' and contains(text(),'noche en')]")))
+    soup_location = single_result_driver.find_element_by_xpath("//h2[@class='_14i3z6h' and contains(text(),'noche en')]")
+
+    # if(single_result_driver.find_element_by_xpath("//div[@class='_eeq7h0']/button[@class='_1d079j1e']")):
+    #     wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_eeq7h0']/button[@class='_1d079j1e']")))
+    #     read_more_button = single_result_driver.find_element_by_xpath("//div[@class='_eeq7h0']/button[@class='_1d079j1e']")
+    #     read_more_button.click()
+
+    wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_siy8gh']/span/div[@class='_eeq7h0']")))
+    soup_description = single_result_driver.find_element_by_xpath("//div[@class='_siy8gh']/span/div[@class='_eeq7h0']")
+
+    description = soup_description.text
+
+    location = soup_location.text.replace(" noches en ", '').replace(" noche en ", '').translate(str.maketrans('', '', digits))
+
+    single_result_driver.quit()
 
     ### crear objeto Hosting ###
     new_hosting = Hosting(name, location, url, category, super_host, services, nightly_price, total_price, rating, description)
