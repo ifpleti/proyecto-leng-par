@@ -9,21 +9,27 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 from .classes import Hosting
 
-def scrape(city, checkin, checkout, adults, children, babies):
+def scrape(city, checkin, checkout, rooms, adults, children, babies):
 
-    result = search(city, checkin, checkout, adults, children, babies)
+    while True:
+        try:
+            result = search(city, checkin, checkout, adults, children, babies)
+            break
+        except:
+            print("busqueda fallida, reintentando...")
+            pass
 
     soup_all_results = BeautifulSoup(result.get_attribute("innerHTML"), "html.parser")
     list_rows = soup_all_results.find_all('div', { 'class': '_8ssblpx' })
 
-    ### Threading ###
+    ### FORMA PARALELA ###
 
     nthreads = os.cpu_count()
     if nthreads > 2:
         nthreads = nthreads - 1
 
     with ThreadPoolExecutor(max_workers = nthreads) as executor:
-        hosting_thread = {executor.submit(refine, row): row for row in list_rows}
+        hosting_thread = {executor.submit(refine, row, rooms): row for row in list_rows}
 
     hosting = []
     for row in as_completed(hosting_thread):
@@ -31,12 +37,23 @@ def scrape(city, checkin, checkout, adults, children, babies):
             item = row.result()
             hosting.append(item)
         except:
-            print("no se creó el objeto")
-        
+            pass
     
-    for i in range(len(hosting)):
-        print(hosting[i])
+    ### FORMA SECUENCIAL ###
 
+    # hosting = []
+    # for row in list_rows:
+    #     try:
+    #         hosting_object = refine(row, rooms)
+    #         hosting.append(hosting_object)
+    #     except:
+    #         pass
+        
+    ### imprimir objetos ###
+
+    # for i in range(len(hosting)):
+    #     print(hosting[i])
+    print(len(hosting))
 
 
 def search(city, checkin, checkout, adults, children, babies):
@@ -53,55 +70,51 @@ def search(city, checkin, checkout, adults, children, babies):
 
     # lugar
     sleep(1)
-    wait.until(EC.presence_of_element_located((By.XPATH,"//input[@data-testid='structured-search-input-field-query']")))
-    locationBox = driver.find_element_by_xpath("//input[@data-testid='structured-search-input-field-query']")
-    locationBox.send_keys(city)
+    location_box = wait.until(EC.presence_of_element_located((By.XPATH,"//input[@data-testid='structured-search-input-field-query']"))).send_keys(city)
+    # location_box.send_keys(city)
 
     # fecha de entrada
-    wait.until(EC.presence_of_element_located((By.XPATH,"//button[@data-testid='structured-search-input-field-split-dates-0']")))
-    checkinButton = driver.find_element_by_xpath("//button[@data-testid='structured-search-input-field-split-dates-0']")
-    checkinButton.click()
-    wait.until(EC.presence_of_element_located((By.XPATH,"//div[@data-testid='datepicker-day-"+ checkin +"']")))
-    checkinDate = driver.find_element_by_xpath("//div[@data-testid='datepicker-day-"+ checkin +"']")
-    checkinDate.click()
+    checkin_button = wait.until(EC.presence_of_element_located((By.XPATH,"//button[@data-testid='structured-search-input-field-split-dates-0']")))
+    checkin_button.click()
+    checkin_date = wait.until(EC.presence_of_element_located((By.XPATH,"//div[@data-testid='datepicker-day-"+ checkin +"']")))
+    checkin_date.click()
 
     # fecha de salida
-    wait.until(EC.presence_of_element_located((By.XPATH,"//div[@data-testid='datepicker-day-"+ checkout +"']")))
-    checkoutDate = driver.find_element_by_xpath("//div[@data-testid='datepicker-day-"+ checkout +"']")
-    checkoutDate.click()
+    checkout_date = wait.until(EC.presence_of_element_located((By.XPATH,"//div[@data-testid='datepicker-day-"+ checkout +"']")))
+    checkout_date.click()
 
     # huespedes
-    wait.until(EC.presence_of_element_located((By.XPATH,"//button[@data-testid='structured-search-input-field-guests-button']")))
-    guestsButton = driver.find_element_by_xpath("//button[@data-testid='structured-search-input-field-guests-button']")
-    guestsButton.click()
+    guests_button = wait.until(EC.presence_of_element_located((By.XPATH,"//button[@data-testid='structured-search-input-field-guests-button']")))
+    guests_button.click()
 
-    wait.until(EC.presence_of_element_located((By.XPATH,"//button[@aria-describedby='searchFlow-title-label-stepper-adults' and @aria-label='aumentar valor']/span")))
-    addAdult = driver.find_element_by_xpath("//button[@aria-describedby='searchFlow-title-label-stepper-adults' and @aria-label='aumentar valor']/span")
+    add_adult = wait.until(EC.presence_of_element_located((By.XPATH,"//button[@aria-describedby='searchFlow-title-label-stepper-adults' and @aria-label='aumentar valor']/span")))
     for _ in range(adults):
-        addAdult.click()
+        add_adult.click()
 
-    wait.until(EC.presence_of_element_located((By.XPATH,"//button[@aria-describedby='searchFlow-title-label-stepper-children' and @aria-label='aumentar valor']/span")))
-    addChild = driver.find_element_by_xpath("//button[@aria-describedby='searchFlow-title-label-stepper-children' and @aria-label='aumentar valor']/span")
+    add_child = wait.until(EC.presence_of_element_located((By.XPATH,"//button[@aria-describedby='searchFlow-title-label-stepper-children' and @aria-label='aumentar valor']/span")))
     for _ in range(children):
-        addChild.click()
+        add_child.click()
 
-    wait.until(EC.presence_of_element_located((By.XPATH,"//button[@aria-describedby='searchFlow-title-label-stepper-infants' and @aria-label='aumentar valor']/span")))
-    addBabie = driver.find_element_by_xpath("//button[@aria-describedby='searchFlow-title-label-stepper-infants' and @aria-label='aumentar valor']/span")
+    add_babie = wait.until(EC.presence_of_element_located((By.XPATH,"//button[@aria-describedby='searchFlow-title-label-stepper-infants' and @aria-label='aumentar valor']/span")))
     for _ in range(babies):
-        addBabie.click()
+        add_babie.click()
 
     # buscar
-    wait.until(EC.presence_of_element_located((By.XPATH,"//button[@data-testid='structured-search-input-search-button']")))
-    searchButton = driver.find_element_by_xpath("//button[@data-testid='structured-search-input-search-button']")
-    searchButton.click()
+    search_button = wait.until(EC.presence_of_element_located((By.XPATH,"//button[@data-testid='structured-search-input-search-button']")))
+    search_button.click()
 
     # lista obtenida por la busqueda
-    wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_fhph4u']")))
-    result = driver.find_element_by_xpath("//div[@class='_fhph4u']")
+    result = wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_fhph4u']")))
 
     return result
 
-def refine(row):
+def refine(row, requested_rooms):
+
+    # habitaciones igual a habitaciones solicitadas
+    rooms = row.find_all('div', { 'class': '_kqh46o' })[0].text.split(' · ')[1]
+    rooms = int(rooms.replace(" ", "     ")[:3].replace(" ", ''))
+    if(rooms < requested_rooms):
+        exit()
 
     # nombre
     name = row.find_all('div', { 'class': '_1c2n35az' })[0].text
@@ -109,16 +122,15 @@ def refine(row):
     # categoría
     category = row.find_all('div', { 'class': '_167qordg' })[0].text.split(' en ')[0]
 
-    # servicios
-    services = row.find_all('div', { 'class': '_kqh46o' })[1].text.split(' · ')
-
     # precio total
     total_price = row.find_all('button', { 'class': '_ebe4pze' })[0].text.replace("Total: $", '').replace('.', '').replace("Mostrar los detalles", '').replace("CLP", '')
+    total_price = int(total_price)
 
+    # superanfitrión
     if(row.find_all('div', { 'class': '_snufp9' })):
-        super_host = True
+        superhost = True
     else:
-        super_host = False
+        superhost = False
 
     # precio por noche
     nightly_price = row.find_all('span', { 'class': '_1p7iugi' })[0].text.replace("Precio:", '').replace("  CLP por noche", '').replace('.','').replace("CLP", '')
@@ -127,18 +139,22 @@ def refine(row):
         i = i-1
     nightly_price = int(nightly_price[i:].replace("$", ''))
 
+    # rating
     if(row.find_all('span', { 'class': '_10fy1f8' })):
-        rating = float(row.find_all('span', { 'class': '_10fy1f8' })[0].text.replace(",", "."))
+        rating = 2*float(row.find_all('span', { 'class': '_10fy1f8' })[0].text.replace(",", "."))
     else:
         rating = None
 
     # extraer url
     url = "https://www.airbnb.cl" + row.find_all('a', href=True)[0]['href']
 
-    # extraer descripción y lugar (requiere entrar al alojamiento)
+
+    ###########################################################################
+    # extraer descripción, lugar y servicios (requiere entrar al alojamiento) #
+    ###########################################################################
 
     single_result_chrome_options = webdriver.ChromeOptions()
-    single_result_chrome_options.add_argument("--window-size=1920,1080")
+    single_result_chrome_options.add_argument("--window-size=960,1080")
     single_result_chrome_options.add_argument("--start-maximized")
     single_result_chrome_options.add_argument('--headless')
     single_result_chrome_options.add_argument('log-level=3')
@@ -147,25 +163,34 @@ def refine(row):
 
     single_result_driver.get(url)
 
-    sleep(2)
-    wait.until(EC.presence_of_element_located((By.XPATH,"//h2[@class='_14i3z6h' and contains(text(),'noche en')]")))
-    soup_location = single_result_driver.find_element_by_xpath("//h2[@class='_14i3z6h' and contains(text(),'noche en')]")
+    location = wait.until(EC.presence_of_element_located((By.XPATH,"//a[@class='_5twioja']"))).text
 
-    # if(single_result_driver.find_element_by_xpath("//div[@class='_eeq7h0']/button[@class='_1d079j1e']")):
-    #     wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_eeq7h0']/button[@class='_1d079j1e']")))
-    #     read_more_button = single_result_driver.find_element_by_xpath("//div[@class='_eeq7h0']/button[@class='_1d079j1e']")
-    #     read_more_button.click()
+    # descripción
+    try:
+        read_more_button = WebDriverWait(single_result_driver, 2).until(EC.presence_of_element_located((By.XPATH,"//div[@class='_eeq7h0']/button[@class='_1d079j1e']")))
+        read_more_button.click()
+    except:
+        pass
+    
+    description = wait.until(EC.presence_of_element_located((By.XPATH,"//div[@data-plugin-in-point-id='DESCRIPTION_DEFAULT']/div[1]")))
+    description = description.text
+    
+    # servicios
+    soup_services_webelement = BeautifulSoup(
+        wait.until(
+            EC.presence_of_element_located(
+                (By.XPATH,"//div[@data-plugin-in-point-id='AMENITIES_DEFAULT']//div[@class='_1byskwn']")
+            )
+        ).get_attribute("innerHTML"), "html.parser")
+    services_webelement_list = soup_services_webelement.find_all('div', { 'class': '_1nlbjeu' })
+    services = []
+    for webelement in services_webelement_list:
+        services.append(webelement.text)
 
-    wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_siy8gh']/span/div[@class='_eeq7h0']")))
-    soup_description = single_result_driver.find_element_by_xpath("//div[@class='_siy8gh']/span/div[@class='_eeq7h0']")
-
-    description = soup_description.text
-
-    location = soup_location.text.replace(" noches en ", '').replace(" noche en ", '').translate(str.maketrans('', '', digits))
-
+    # cerrar sesión del driver
     single_result_driver.quit()
 
     ### crear objeto Hosting ###
-    new_hosting = Hosting(name, location, url, category, super_host, services, nightly_price, total_price, rating, description)
-
+    new_hosting = Hosting(name, location, url, category, rooms, superhost, services, nightly_price, total_price, rating, description)
+    
     return new_hosting

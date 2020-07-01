@@ -1,10 +1,11 @@
 class Hosting():
-    def __init__(self, name, location, url, category, super_host, services, nightly_price, total_price, rating, description):
+    def __init__(self, name, location, url, category, rooms, superhost, services, nightly_price, total_price, rating, description):
         self.name = name
         self.location = location
         self.url = url
         self.category = category
-        self.super_host = super_host
+        self.rooms = rooms
+        self.superhost = superhost # clase hija
         self.services = services
         self.nightly_price = nightly_price
         self.total_price = total_price
@@ -17,7 +18,8 @@ class Hosting():
             +"\nlugar: "+self.location
             +"\nurl: "+self.url
             +"\ncategoría: "+self.category
-            +"\nes superanfitrión: "+str(self.super_host)
+            +"\nhabitaciones: "+str(self.rooms)
+            +"\nes superanfitrión: "+str(self.superhost)
             +"\nservicios: "+str(self.services)
             +"\nprecio por noche: "+str(self.nightly_price)
             +"\nprecio total: "+str(self.total_price)
