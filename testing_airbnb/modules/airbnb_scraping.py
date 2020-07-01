@@ -4,10 +4,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
 from bs4 import BeautifulSoup
-from string import digits
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 from .classes import Hosting
+
 
 def scrape(city, checkin, checkout, rooms, adults, children, babies):
 
@@ -53,16 +53,18 @@ def scrape(city, checkin, checkout, rooms, adults, children, babies):
 
     # for i in range(len(hosting)):
     #     print(hosting[i])
-    print(len(hosting))
+    # print(len(hosting))
 
-
+    
 def search(city, checkin, checkout, adults, children, babies):
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument('--headless')
+
     chrome_options.add_argument('log-level=3')
+
     driver = webdriver.Chrome(options = chrome_options)
     wait = WebDriverWait(driver, 5)
 
@@ -70,6 +72,7 @@ def search(city, checkin, checkout, adults, children, babies):
 
     # lugar
     sleep(1)
+
     location_box = wait.until(EC.presence_of_element_located((By.XPATH,"//input[@data-testid='structured-search-input-field-query']"))).send_keys(city)
     # location_box.send_keys(city)
 
@@ -108,6 +111,7 @@ def search(city, checkin, checkout, adults, children, babies):
 
     return result
 
+  
 def refine(row, requested_rooms):
 
     # habitaciones igual a habitaciones solicitadas
@@ -194,3 +198,4 @@ def refine(row, requested_rooms):
     new_hosting = Hosting(name, location, url, category, rooms, superhost, services, nightly_price, total_price, rating, description)
     
     return new_hosting
+
