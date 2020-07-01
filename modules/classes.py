@@ -12,15 +12,16 @@ class Hosting():
 
     def __str__(self):
         text = (
-            "nombre de la oferta: "+self.name
-            +"\nlugar: "+self.location
-            +"\nurl: "+self.url
-            +"\ncategoría: "+self.category
-            +"\nhabitaciones: "+str(self.rooms)
-            +"\nservicios: "+str(self.services)
-            +"\nprecio por noche: "+str(self.nightly_price)
-            +"\nprecio total: "+str(self.total_price)
-            +"\ncalificación: "+str(self.rating)
+            "NOMBRE: "+self.name
+            +"\nLUGAR: "+self.location
+            +"\nURL: "+self.url
+            +"\nCATEGORÍA: "+self.category
+            +"\nHABITACIONES: "+str(self.rooms)
+            +"\nSERVICIOS: "+str(self.services)
+            +"\nPRECIO POR NOCHE: "+str(self.nightly_price)
+            +"\nPRECIO TOTAL: "+str(self.total_price)
+            +"\nCALIFICACIÓN: "+str(self.rating)
+            +"\n"
         )
 
         return text
@@ -34,8 +35,8 @@ class AirbnbHosting(Hosting):
     def __str__(self):
         text = (
             super().__str__()
-            +"\nes superanfitrión: "+str(self.superhost)
-            +"\ndescripción: "+self.description
+            +"SUPERANFITRIÓN: "+str(self.superhost)
+            +"\nDESCRIPCIÓN: "+self.description
             +"\n"
         )
 
@@ -49,7 +50,7 @@ class TrivagoHosting(Hosting):
     def __str__(self):
         text = (
             super().__str__()
-            +"\nes opción popular: "+str(self.popular_choice)
+            +"OPCIÓN POPULAR: "+str(self.popular_choice)
             +"\n"
         )
 

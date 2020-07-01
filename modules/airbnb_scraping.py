@@ -7,9 +7,10 @@ from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 from .classes import AirbnbHosting
+import threading
 
 
-def scrape(city, checkin, checkout, rooms, adults, children, babies):
+def airbnb_scrape(city, checkin, checkout, rooms, adults, children, babies):
 
     while True:
         try:
@@ -24,11 +25,13 @@ def scrape(city, checkin, checkout, rooms, adults, children, babies):
 
     ### FORMA PARALELA ###
 
-    nthreads = os.cpu_count()
-    if nthreads > 2:
-        nthreads = nthreads - 1
+    physical_threads = os.cpu_count()
+    if physical_threads > 2:
+        workers = int(physical_threads/2 + 0.5) - 1
+    else:
+        workers = 1
 
-    with ThreadPoolExecutor(max_workers = nthreads) as executor:
+    with ThreadPoolExecutor(max_workers = workers) as executor:
         hosting_thread = {executor.submit(refine, row, rooms): row for row in list_rows}
 
     hosting = []
@@ -120,6 +123,9 @@ def refine(row, requested_rooms):
     if(rooms < requested_rooms):
         exit()
 
+    # extraer url
+    url = "https://www.airbnb.cl" + row.find_all('a', href=True)[0]['href']
+
     # nombre
     name = row.find_all('div', { 'class': '_1c2n35az' })[0].text
 
@@ -149,9 +155,6 @@ def refine(row, requested_rooms):
     else:
         rating = None
 
-    # extraer url
-    url = "https://www.airbnb.cl" + row.find_all('a', href=True)[0]['href']
-
 
     ###########################################################################
     # extraer descripción, lugar y servicios (requiere entrar al alojamiento) #
@@ -177,7 +180,7 @@ def refine(row, requested_rooms):
         pass
     
     description = wait.until(EC.presence_of_element_located((By.XPATH,"//div[@data-plugin-in-point-id='DESCRIPTION_DEFAULT']/div[1]")))
-    description = description.text
+    description = description.text.replace(".\n\n", ".\n").replace("\n\n", ".\n").replace(":.", ":")
     
     # servicios
     soup_services_webelement = BeautifulSoup(

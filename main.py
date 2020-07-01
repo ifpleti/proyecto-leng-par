@@ -1,4 +1,5 @@
-from modules.airbnb_scraping import scrape
+from modules.airbnb_scraping import airbnb_scrape
+from modules.utils import time_format, save_object_list
 # from modules.trivago_scraping import foobar
 import time
 
@@ -12,16 +13,29 @@ def main():
     children = 2
     babies = 1
 
+    ### Airbnb scraping ###
     start_time = time.time()
+    airbnb_hosting_list = airbnb_scrape(city, checkin, checkout, rooms, adults, children, babies)
+    airbnb_execution_time = time.time() - start_time
 
-    airbnb_hosting_list = scrape(city, checkin, checkout, rooms, adults, children, babies)
+    ### Trivago scraping ###
+    start_time = time.time()
+    # trivago_hosting_list = trivago_scrape(city, checkin, checkout, rooms, adults, children, babies)
+    trivago_execution_time = time.time() - start_time
 
-    # imprimir resultados
-    for i in range(len(airbnb_hosting_list)):
-        print(airbnb_hosting_list[i])
-    print("\n"+str(len(airbnb_hosting_list))+" resultados de AirBnb obtenidos.")
+    ### Fusionar listas ###
+    hosting = []
+    for object in airbnb_hosting_list:
+        hosting.append(object)
+    # for object in trivago_hosting_list:
+    #     hosting.append(object)
 
-    print("en %s segundos ---" % (time.time() - start_time))
+    ### imprimir resultados ###
+    print("\nairbnb scraping | "+time_format(airbnb_execution_time)+" | "+str(len(airbnb_hosting_list))+" resultados")
+    # print("\ntrivago scraping | "+time_format(trivago_execution_time)+" | "+str(len(trivago_hosting_list))+" resultados")
+
+    ### guardar alojamientos en generated.txt ###
+    save_object_list(hosting)
 
 if __name__ == "__main__":
     main()
