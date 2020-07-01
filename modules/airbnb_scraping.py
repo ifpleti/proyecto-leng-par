@@ -14,14 +14,13 @@ def airbnb_scrape(city, checkin, checkout, rooms, adults, children, babies):
 
     while True:
         try:
-            result = search(city, checkin, checkout, adults, children, babies)
+            list_rows = search(city, checkin, checkout, adults, children, babies)
             break
         except:
             print("busqueda fallida, reintentando...")
             pass
 
-    soup_all_results = BeautifulSoup(result.get_attribute("innerHTML"), "html.parser")
-    list_rows = soup_all_results.find_all('div', { 'class': '_8ssblpx' })
+    
 
     ### FORMA PARALELA ###
 
@@ -112,7 +111,13 @@ def search(city, checkin, checkout, adults, children, babies):
     # lista obtenida por la busqueda
     result = wait.until(EC.presence_of_element_located((By.XPATH,"//div[@class='_fhph4u']")))
 
-    return result
+    # pasar lista de elementos por beautifulsoup
+    soup_all_results = BeautifulSoup(result.get_attribute("innerHTML"), "html.parser")
+    list_rows = soup_all_results.find_all('div', { 'class': '_8ssblpx' })
+
+    driver.quit()
+
+    return list_rows
 
   
 def refine(row, requested_rooms):
