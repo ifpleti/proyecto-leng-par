@@ -1,4 +1,5 @@
 from modules.airbnb_scraping import scrape
+# from modules.trivago_scraping import foobar
 import time
 
 def main():
@@ -13,9 +14,14 @@ def main():
 
     start_time = time.time()
 
-    scrape(city, checkin, checkout, rooms, adults, children, babies)
+    airbnb_hosting_list = scrape(city, checkin, checkout, rooms, adults, children, babies)
 
-    print("--- %s segundos ---" % (time.time() - start_time))
+    # imprimir resultados
+    for i in range(len(airbnb_hosting_list)):
+        print(airbnb_hosting_list[i])
+    print("\n"+str(len(airbnb_hosting_list))+" resultados de AirBnb obtenidos.")
+
+    print("en %s segundos ---" % (time.time() - start_time))
 
 if __name__ == "__main__":
     main()

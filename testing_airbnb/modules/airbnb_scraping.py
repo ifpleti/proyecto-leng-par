@@ -6,7 +6,7 @@ from time import sleep
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
-from .classes import Hosting
+from .classes import AirbnbHosting
 
 
 def scrape(city, checkin, checkout, rooms, adults, children, babies):
@@ -48,12 +48,12 @@ def scrape(city, checkin, checkout, rooms, adults, children, babies):
     #         hosting.append(hosting_object)
     #     except:
     #         pass
-        
-    ### imprimir objetos ###
 
     # for i in range(len(hosting)):
     #     print(hosting[i])
-    # print(len(hosting))
+    # print("\n"+str(len(hosting))+" resultados de AirBnb obtenidos.")
+
+    return hosting
 
     
 def search(city, checkin, checkout, adults, children, babies):
@@ -73,8 +73,8 @@ def search(city, checkin, checkout, adults, children, babies):
     # lugar
     sleep(1)
 
-    location_box = wait.until(EC.presence_of_element_located((By.XPATH,"//input[@data-testid='structured-search-input-field-query']"))).send_keys(city)
-    # location_box.send_keys(city)
+    location_box = wait.until(EC.presence_of_element_located((By.XPATH,"//input[@data-testid='structured-search-input-field-query']")))
+    location_box.send_keys(city)
 
     # fecha de entrada
     checkin_button = wait.until(EC.presence_of_element_located((By.XPATH,"//button[@data-testid='structured-search-input-field-split-dates-0']")))
@@ -114,7 +114,7 @@ def search(city, checkin, checkout, adults, children, babies):
   
 def refine(row, requested_rooms):
 
-    # habitaciones igual a habitaciones solicitadas
+    # habitaciones igual o mayor habitaciones solicitadas
     rooms = row.find_all('div', { 'class': '_kqh46o' })[0].text.split(' · ')[1]
     rooms = int(rooms.replace(" ", "     ")[:3].replace(" ", ''))
     if(rooms < requested_rooms):
@@ -195,7 +195,7 @@ def refine(row, requested_rooms):
     single_result_driver.quit()
 
     ### crear objeto Hosting ###
-    new_hosting = Hosting(name, location, url, category, rooms, superhost, services, nightly_price, total_price, rating, description)
-    
+    new_hosting = AirbnbHosting(name, location, url, category, rooms, services, nightly_price, total_price, rating, superhost, description)
+
     return new_hosting
 
