@@ -196,7 +196,7 @@ def refine(row, requested_rooms):
     single_result_driver.quit()
 
     ### crear objeto Hosting ###
-    new_hosting = AirbnbHosting(name, location, url, category, rooms, services, nightly_price, total_price, rating, superhost, description)
+    new_hosting = AirbnbHosting(name, location, category, rooms, services, nightly_price, total_price, rating, superhost, description, url)
 
     return new_hosting
 

@@ -19,9 +19,9 @@ def main():
     airbnb_execution_time = (time.time() - start_time)
 
     ### Trivago scraping ###
-    start_time = time.time()
+    # start_time = time.time()
     # trivago_hosting_list = trivago_scrape(city, checkin, checkout, rooms, adults, children, babies)
-    trivago_execution_time = (time.time() - start_time)
+    # trivago_execution_time = (time.time() - start_time)
 
     ### Fusionar listas ###
     hosting = []
