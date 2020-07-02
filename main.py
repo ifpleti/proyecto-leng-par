@@ -1,6 +1,6 @@
 from modules.airbnb_scraping import airbnb_scrape
 from modules.utils import time_format, save_object_list
-# from modules.trivago_scraping import foobar
+from modules.trivago_scraping import search_trivago
 import time
 
 def main():
