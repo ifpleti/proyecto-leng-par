@@ -177,14 +177,7 @@ def refine(row, requested_rooms):
 
     location = wait.until(EC.presence_of_element_located((By.XPATH,"//a[@class='_5twioja']"))).text
 
-    # descripción
-    try:
-        read_more_button = WebDriverWait(single_result_driver, 2).until(EC.presence_of_element_located((By.XPATH,"//div[@class='_eeq7h0']/button[@class='_1d079j1e']")))
-        read_more_button.click()
-    except:
-        pass
-    
-    description = wait.until(EC.presence_of_element_located((By.XPATH,"//div[@data-plugin-in-point-id='DESCRIPTION_DEFAULT']/div[1]")))
+    description = wait.until(EC.presence_of_element_located((By.XPATH,"//div[@data-section-id='DESCRIPTION_DEFAULT']/div[@class='_siy8gh']")))
     description = description.text.replace(".\n\n", ".\n").replace("\n\n", ".\n").replace(":.", ":")
     
     # servicios
