@@ -10,14 +10,11 @@ from math import floor, ceil
 from .classes import ExpediaHosting
 
 def _config():
-    driver_path = r'/usr/local/bin/chromedriver'
-    browser_path = r'/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
     option = webdriver.ChromeOptions()
     option.add_experimental_option("detach", True)
-    option.binary_location = browser_path
     option.add_argument("--start-maximized")
     option.add_argument('--headless')
-    browser = webdriver.Chrome(executable_path = driver_path, options = option)
+    browser = webdriver.Chrome(options = option)
     browser.get('https://www.expedia.es')
     return browser
 
