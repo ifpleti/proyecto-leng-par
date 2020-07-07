@@ -52,7 +52,7 @@ class ExpediaHosting(Hosting):
         text = (
             super().__str__()
             +"DESCRIPCIÓN: "+self.description
-            +"URL: "+self.url
+            +"\nURL: "+self.url
             +"\n"
         )
 

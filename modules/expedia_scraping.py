@@ -11,7 +11,6 @@ from .classes import ExpediaHosting
 
 def _config():
     option = webdriver.ChromeOptions()
-    option.add_experimental_option("detach", True)
     option.add_argument("--start-maximized")
     option.add_argument('--headless')
     browser = webdriver.Chrome(options = option)
@@ -225,7 +224,9 @@ def _expedia(city, checkin, checkout, rooms, adults, children, babies):
         nombre = pagina.find_element_by_xpath("//h1[@data-stid='content-hotel-title']")
         descripcion = pagina.find_element_by_css_selector("p[class*='uitk-type-paragraph-300']")
 
-        tipo = pagina.find_element_by_css_selector("div[data-stid='content-markup']").text
+        tipo = (pagina.find_element_by_css_selector("div[data-stid='content-markup']").text).split()[0]
+
+        precio_noche = str(int(precios[contador].split()[0])/nights)+precios[contador].split()[1]
 
         try:
             calificacion = pagina.find_element_by_xpath("//meta[@itemprop='ratingValue']")
@@ -242,7 +243,7 @@ def _expedia(city, checkin, checkout, rooms, adults, children, babies):
             servicio_p = servicio.find_element_by_css_selector("span[class*='uitk-cell']")
             ammenities_list.append(servicio_p.text)
 
-        offer = ExpediaHosting(name = nombre, location = city, category = tipo, rooms = rooms, services = ammenities_list, nightly_price = '', total_price = precios[contador], rating = calificacion, description = descripcion, url = links[contador])
+        offer = ExpediaHosting(name = nombre.text, location = city, category = tipo, rooms = rooms, services = ammenities_list, nightly_price = precio_noche, total_price = precios[contador], rating = calificacion, description = descripcion.text, url = links[contador])
         offers.append(offer)
 
         contador+=1
