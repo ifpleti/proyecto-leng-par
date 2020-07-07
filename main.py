@@ -36,6 +36,8 @@ def main():
 
     ### guardar alojamientos en generated.txt ###
     save_object_list(hosting)
+    ## ordenar objetos en pos de su atributo rating ###
+    sorted_hosting = sorted(hosting, key=lambda x: x.rating)
 
 if __name__ == "__main__":
     main()
