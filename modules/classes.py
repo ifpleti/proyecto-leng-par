@@ -42,15 +42,17 @@ class AirbnbHosting(Hosting):
 
         return text
 
-class TrivagoHosting(Hosting):
-    def __init__(self, name, location, category, rooms, services, nightly_price, total_price, rating, popular_choice):
+class ExpediaHosting(Hosting):
+    def __init__(self, name, location, category, rooms, services, nightly_price, total_price, rating, description, url):
         super().__init__(name, location, category, rooms, services, nightly_price, total_price, rating)
-        self.popular_choice = popular_choice
+        self.description = description
+        self.url = url
 
     def __str__(self):
         text = (
             super().__str__()
-            +"OPCIÓN POPULAR: "+str(self.popular_choice)
+            +"DESCRIPCIÓN: "+self.description
+            +"\nURL: "+self.url
             +"\n"
         )
 
