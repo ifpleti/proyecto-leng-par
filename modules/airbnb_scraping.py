@@ -17,7 +17,7 @@ def airbnb_scrape(city, checkin, checkout, rooms, adults, children, babies):
             list_rows = search(city, checkin, checkout, adults, children, babies)
             break
         except:
-            print("busqueda fallida, reintentando...")
+            print("busqueda Airbnb fallida, reintentando...")
             pass
 
     
@@ -105,7 +105,7 @@ def search(city, checkin, checkout, adults, children, babies):
         add_babie.click()
 
     # buscar
-    search_button = wait.until(EC.presence_of_element_located((By.XPATH,"//button[@data-testid='structured-search-input-search-button']")))
+    search_button = wait.until(EC.presence_of_element_located((By.XPATH,"//button[@class='_3h0uzoe']")))
     search_button.click()
 
     # lista obtenida por la busqueda
@@ -156,7 +156,7 @@ def refine(row, requested_rooms):
 
     # rating
     if(row.find_all('span', { 'class': '_10fy1f8' })):
-        rating = 2*float(row.find_all('span', { 'class': '_10fy1f8' })[0].text.replace(",", "."))
+        rating = float(row.find_all('span', { 'class': '_10fy1f8' })[0].text.replace(",", "."))
     else:
         rating = None
 

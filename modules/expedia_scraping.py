@@ -11,8 +11,12 @@ from .classes import ExpediaHosting
 
 def _config():
     option = webdriver.ChromeOptions()
+    option.add_argument("--window-size=1920,1080")
     option.add_argument("--start-maximized")
     option.add_argument('--headless')
+    option.add_argument('log-level=3')
+    user_agent = 'I LIKE CHOCOLATE'
+    option.add_argument(f'user-agent={user_agent}')
     browser = webdriver.Chrome(options = option)
     browser.get('https://www.expedia.es')
     return browser
@@ -212,40 +216,63 @@ def _expedia(city, checkin, checkout, rooms, adults, children, babies):
 
     contador=0
     for link in links:
-        body = browser.find_element_by_tag_name("body").send_keys(Keys.CONTROL + 't')
-        browser.get(link)
+        
+        try:
+            body = browser.find_element_by_tag_name("body").send_keys(Keys.CONTROL + 't')
+            browser.get(link)
+        except:
+            continue
 
-        pagina = wait.until(
-        EC.presence_of_element_located(
-            (By.CLASS_NAME, 'app-layer-base--active')
+        try:
+            pagina = wait.until(
+            EC.presence_of_element_located(
+                (By.CLASS_NAME, 'app-layer-base--active')
+                )
             )
-        )
+        except:
+            continue
+        
+        try:
+            nombre = pagina.find_element_by_xpath("//h1[@data-stid='content-hotel-title']")
+        except:
+            continue
 
-        nombre = pagina.find_element_by_xpath("//h1[@data-stid='content-hotel-title']")
-        descripcion = pagina.find_element_by_css_selector("p[class*='uitk-type-paragraph-300']")
-
-        tipo = (pagina.find_element_by_css_selector("div[data-stid='content-markup']").text).split()[0]
-
-        precio_noche = str(int(precios[contador].split()[0])/nights)+precios[contador].split()[1]
-
+        try:
+            descripcion = pagina.find_element_by_css_selector("p[class*='uitk-type-paragraph-300']")
+        except:
+            continue
+        
+        try:
+            tipo = (pagina.find_element_by_css_selector("div[data-stid='content-markup']").text).split()[0]
+        except:
+            continue
+        
+        try:
+            precio_noche = str(int(precios[contador].split()[0])/nights)+precios[contador].split()[1]
+        except:
+            continue
         try:
             calificacion = pagina.find_element_by_xpath("//meta[@itemprop='ratingValue']")
             calificacion = calificacion.get_attribute("content")
         except:
             calificacion=0
 
-        ammenities=[]
-        ammenities_list = []
-        servicios = pagina.find_element_by_xpath("//div[@data-stid='hotel-amenities-list']")
-        #servicios = servicios.find_element_by_css_selector("ul[data-stid*='amenities-grid']")
-        ammenities = servicios.find_elements_by_css_selector("li[class*='uitk-cell']")
-        for servicio in ammenities:
-            servicio_p = servicio.find_element_by_css_selector("span[class*='uitk-cell']")
-            ammenities_list.append(servicio_p.text)
-
-        offer = ExpediaHosting(name = nombre.text, location = city, category = tipo, rooms = rooms, services = ammenities_list, nightly_price = precio_noche, total_price = precios[contador], rating = calificacion, description = descripcion.text, url = links[contador])
-        offers.append(offer)
-
+        try:
+            ammenities=[]
+            ammenities_list = []
+            servicios = pagina.find_element_by_xpath("//div[@data-stid='hotel-amenities-list']")
+            #servicios = servicios.find_element_by_css_selector("ul[data-stid*='amenities-grid']")
+            ammenities = servicios.find_elements_by_css_selector("li[class*='uitk-cell']")
+            for servicio in ammenities:
+                servicio_p = servicio.find_element_by_css_selector("span[class*='uitk-cell']")
+                ammenities_list.append(servicio_p.text)
+        except:
+            continue
+        try:
+            offer = ExpediaHosting(name = nombre.text, location = city, category = tipo, rooms = rooms, services = ammenities_list, nightly_price = precio_noche, total_price = precios[contador], rating = calificacion, description = descripcion.text, url = links[contador])
+            offers.append(offer)
+        except:
+            continue
         contador+=1
         body = browser.find_element_by_tag_name("body").send_keys(Keys.CONTROL + 'w')
     browser.close()
