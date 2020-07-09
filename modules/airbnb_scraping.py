@@ -8,6 +8,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 from .classes import AirbnbHosting
 import threading
+import json
+import requests
 
 
 def airbnb_scrape(city, checkin, checkout, rooms, adults, children, babies):
@@ -26,7 +28,7 @@ def airbnb_scrape(city, checkin, checkout, rooms, adults, children, babies):
 
     physical_threads = os.cpu_count()
     if physical_threads > 2:
-        workers = int(physical_threads/2 + 0.5) - 1
+        workers = physical_threads - 1
     else:
         workers = 1
 
@@ -165,38 +167,71 @@ def refine(row, requested_rooms):
     # extraer descripción, lugar y servicios (requiere entrar al alojamiento) #
     ###########################################################################
 
-    single_result_chrome_options = webdriver.ChromeOptions()
-    single_result_chrome_options.add_argument("--window-size=960,1080")
-    single_result_chrome_options.add_argument("--start-maximized")
-    single_result_chrome_options.add_argument('--headless')
-    single_result_chrome_options.add_argument('log-level=3')
-    single_result_driver = webdriver.Chrome(options = single_result_chrome_options)
-    wait = WebDriverWait(single_result_driver, 10)
+    hosting_result = hosting_request(url)
+    description = hosting_result[0]
+    location = hosting_result[1]
+    services = hosting_result[2]
 
-    single_result_driver.get(url)
 
-    location = wait.until(EC.presence_of_element_located((By.XPATH,"//a[@class='_5twioja']"))).text
-
-    description = wait.until(EC.presence_of_element_located((By.XPATH,"//div[@data-section-id='DESCRIPTION_DEFAULT']/div[@class='_siy8gh']")))
-    description = description.text.replace(".\n\n", ".\n").replace("\n\n", ".\n").replace(":.", ":")
-    
-    # servicios
-    soup_services_webelement = BeautifulSoup(
-        wait.until(
-            EC.presence_of_element_located(
-                (By.XPATH,"//div[@data-plugin-in-point-id='AMENITIES_DEFAULT']//div[@class='_1byskwn']")
-            )
-        ).get_attribute("innerHTML"), "html.parser")
-    services_webelement_list = soup_services_webelement.find_all('div', { 'class': '_1nlbjeu' })
-    services = []
-    for webelement in services_webelement_list:
-        services.append(webelement.text)
-
-    # cerrar sesión del driver
-    single_result_driver.quit()
-
-    ### crear objeto Hosting ###
     new_hosting = AirbnbHosting(name, location, category, rooms, services, nightly_price, total_price, rating, superhost, description, url)
 
     return new_hosting
+
+def hosting_request(url):
+
+    headers = {
+        'Device-Memory': '8',
+        'DNT': '1',
+        'X-Airbnb-GraphQL-Platform-Client': 'apollo-niobe',
+        'X-CSRF-Token': 'V4$.airbnb.cl$OJPrvRpFt_Q$yltRj2wj8wqsi2A_8Cq3KmyfT3hecIyqkNoQWNAUNdk=',
+        'X-Airbnb-API-Key': 'd306zoyjsyarp7ifhu67rjxn52tv0t20',
+        'X-CSRF-Without-Token': '1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36 Edg/83.0.478.58',
+        'Viewport-Width': '1858',
+        'content-type': 'application/json',
+        'accept': '*/*',
+        'Referer': url,
+        'DPR': '1',
+        'ect': '4g',
+        'X-Airbnb-GraphQL-Platform': 'web',
+    }
+
+    params = (
+        ('locale', 'es-XL'),
+        ('operationName', 'PdpPlatformSections'),
+        ('currency', 'CLP'),
+        # ('variables', '{"request":{"id":"'+url[28:][:8]+'","layouts":["SIDEBAR","SINGLE_COLUMN"],"translateUgc":false,"preview":false,"bypassTargetings":false,"displayExtensions":null,"checkIn":"'+checkin+'","checkOut":"'+checkout+'","adults":"'+str(adults)+'","children":"'+str(children)+'","infants":"'+str(babies)+'"}}'),
+        ('variables', '{"request":{"id":"'+url[28:][:8]+'","layouts":["SIDEBAR","SINGLE_COLUMN"],"translateUgc":false,"preview":false,"bypassTargetings":false,"displayExtensions":null}}'),
+        ('extensions', '{"persistedQuery":{"version":1,"sha256Hash":"9b024d3a9845a2f383895666e149c60f3552534722376c5df84c237e4a3a353e"}}'),
+    )
+
+    data = requests.get('https://www.airbnb.cl/api/v3/PdpPlatformSections', headers=headers, params=params)
+    loaded_data = json.loads(data.text)
+
+    for dict in loaded_data['data']['merlin']['pdpSections']['sections']:
+
+        if dict['sectionId'] == 'DESCRIPTION_DEFAULT':
+            description = dict['section']['htmlDescription']['htmlText']
+            description = description.replace('<br />', '\n').replace('<br/>', '\n').replace('</b>', '').replace('<b>', '')
+
+        if dict['sectionId'] == 'LOCATION_DEFAULT':
+            location = dict['section']['subtitle']
+            if location == None:
+                for dict2 in dict['section']['seeAllLocationDetails']:
+                    if dict2['id'] == 'neighborhood-seeAll_'+url[28:][:8]:
+                        location = dict2['title']
+
+        if dict['sectionId'] == 'AMENITIES_DEFAULT':
+            services = []
+            for dict2 in dict['section']['seeAllAmenitiesGroups']:
+                if dict2['title'] != 'No incluidos':
+                    for dict3 in dict2['amenities']:
+                        services.append(dict3['title'])
+
+    result = []
+    result.append(description)
+    result.append(location)
+    result.append(services)
+
+    return result
 
