@@ -13,12 +13,15 @@ import requests
 
 
 def airbnb_scrape(city, checkin, checkout, rooms, adults, children, babies):
-
+    tries = 1
     while True:
         try:
             list_rows = search(city, checkin, checkout, adults, children, babies)
             break
         except:
+            tries += 1
+            if tries == 3:
+                return None
             print("busqueda Airbnb fallida, reintentando...")
             pass
 

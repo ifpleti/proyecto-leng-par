@@ -13,6 +13,10 @@ def main():
     children = 2
     babies = 1
 
+    category = 'M'
+
+
+
     hosting = [] # Aquí residirán TODOS los resultados
 
     ### Airbnb scraping ###
@@ -35,5 +39,20 @@ def main():
 
     ### guardar alojamientos en generated.txt ###
     save_object_list(hosting)
+
+
+    #### TEST ####
+    services = set()
+    for i in hosting:
+        for j in i.services:
+            services.add(j)
+    services2 = []
+
+    for i in services:
+        services2.append[i]
+
+    print(services2.sort())
+
+
 if __name__ == "__main__":
     main()

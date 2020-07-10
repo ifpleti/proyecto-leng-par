@@ -18,7 +18,7 @@ def _config():
     user_agent = 'I LIKE CHOCOLATE'
     option.add_argument(f'user-agent={user_agent}')
     browser = webdriver.Chrome(options = option)
-    browser.get('https://www.expedia.es')
+    browser.get('https://www.expedia.com/es/?adobe_mc=MCMID%3D42589404683084645479087865546743277217%7CMCORGID%3DC00802BE5330A8350A490D4C%2540AdobeOrg%7CTS%3D1594338763&currency=CLP&langid=2058&pwaLob=wizard-hotel-pwa-v2&tpid=1&eapid=0')
     return browser
 
 def _convert_month(date):
@@ -155,7 +155,7 @@ def _expedia(city, checkin, checkout, rooms, adults, children, babies):
     
     #lo primero es agregar la cantidad de habitaciones que pide
     for contador in range(int(rooms)-1):
-        add_room_button = travelers.find_element_by_xpath('//button[text()="Añadir otra habitación"]')
+        add_room_button = travelers.find_element_by_xpath('//button[text()="Agregar otra habitación"]')
         browser.execute_script('arguments[0].click();',add_room_button)
 
     #funcion que calcula cantidad de personas por habitacion
@@ -212,7 +212,9 @@ def _expedia(city, checkin, checkout, rooms, adults, children, babies):
             links.append(link)
 
             precio = resultado.find_element_by_css_selector("span[data-stid='content-hotel-lead-price']")
-            precios.append(precio.text)
+            precio = int(precio.text.replace('CLP', '').replace(' ', '').replace(',', ''))
+            
+            precios.append(precio)
 
     contador=0
     for link in links:
@@ -248,7 +250,7 @@ def _expedia(city, checkin, checkout, rooms, adults, children, babies):
             continue
         
         try:
-            precio_noche = str(int(precios[contador].split()[0])/nights)+precios[contador].split()[1]
+            precio_noche = int(precios[contador]/nights)   ##+precios[contador].split()[1]
         except:
             continue
         try:
