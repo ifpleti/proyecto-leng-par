@@ -180,7 +180,7 @@ def refine(row, requested_rooms):
 
     return new_hosting
 
-def hosting_request(url):
+def hosting_request(url): #CURL TO PYHON
 
     headers = {
         'Device-Memory': '8',

@@ -49,15 +49,19 @@ def hosting_filter(hosting, filter_type, filter_list, lower, upper):
 
     return hosting
     
+def service_filter(hosting, service_input): #pasar a funcional!
+    filtered_host = []
+    #Se agrega sin repeticion
+    for host in hosting:
+        contador = 0
+        for asked_service in service_input:
+            if((host.services.count(asked_service) >= 1)):
+                contador += 1
+        if(contador >= len(service_input)-1):
+            filtered_host.append(host)
+                    
+    return filtered_host
 
-def service_filter(hosting, service_input): #service_input es una lista
-    filtered_services = []
-    for search in hosting:
-        for service in service_input:
-            for service_search in search.service:
-                if(service_search == search.service):
-                    filtered_services = []
-    
 def category_filter(hosting, category_input): #category_input es una lista
     filtered_categories = []
     for service in category_input:
@@ -90,7 +94,7 @@ def hosting_sort(hosting, sort_type):
     
 
 def total_price_sort(hosting):
-    sorted_hosting = sorted(sorted_hosting, key=lambda x: x.total_price)
+    sorted_hosting = sorted(hosting, key=lambda x: x.total_price)
 
     return hosting
 
