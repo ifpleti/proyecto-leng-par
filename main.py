@@ -6,8 +6,8 @@ import time
 def main():
 
     city = "Viña del Mar"
-    checkin = "2020-07-10"
-    checkout = "2020-07-12"
+    checkin = "2020-07-17"
+    checkout = "2020-07-19"
     rooms = 2
     adults = 2
     children = 2
