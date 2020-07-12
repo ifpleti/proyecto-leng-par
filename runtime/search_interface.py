@@ -7,7 +7,7 @@ def search_window():
 
     window = tk.Tk()
     window.title('Buscar alojamiento')
-    window.geometry('350x215')
+    window.geometry('350x280')
     window.resizable(False, False)
 
     city_lbl = tk.Label(window, text= 'Lugar')
@@ -85,103 +85,112 @@ def search_window():
             adults_input.get(),
             children_input.get(),
             babies_input.get(),
-            window
+            window,
+            today
             )
         )
-    search_btn.grid(column=0, row=9, pady=4, padx=4)
+    search_btn.grid(column=1, columnspan=3, row=9, pady=4, padx=4)
         
     window.mainloop()
 
 def check_input(city, checkin_y, checkin_m, checkin_d,
-checkout_y, checkout_m, checkout_d, rooms, adults, children, babies, window):
+checkout_y, checkout_m, checkout_d, rooms, adults, children, babies, window, today):
 
     valid = True
 
-    if all(x.isalpha() or x.isspace() for x in city):
-        city_input_error = tk.Label(window, text= 'check!', fg="green")
-        city_input_error.grid(column=4, row=1, sticky='W', padx=10, pady=2)
+    if all(x.isalpha() or x.isspace() for x in city) and len(city) > 3:
+        city_input = tk.Label(window, text= 'check!', fg="green")
+        city_input.grid(column=4, row=1, sticky='W', padx=10, pady=2)
     else:
-        city_input_error = tk.Label(window, text= 'Solo letras y espacios', fg="red")
-        city_input_error.grid(column=4, row=1, sticky='W', padx=10, pady=2)
+        city_input = tk.Label(window, text= 'mínimo 4 letras o espacios', fg="red")
+        city_input.grid(column=4, row=1, sticky='W', padx=10, pady=2)
         valid = False
 
+    today = today.strftime("%Y-%m-%d")
     try:
-        int(checkin_y)
-        int(checkin_m)
-        int(checkin_d)
-        checkin_input_error = tk.Label(window, text= 'check!', fg="green")
-        checkin_input_error.grid(column=4, row=2, sticky='W', padx=10, pady=2)
+        checkin = str(checkin_y)+'-'+str(checkin_m)+'-'+str(checkin_d)
+        checkout = str(checkout_y)+'-'+str(checkout_m)+'-'+str(checkout_d)
+        if today <= checkin and checkin < checkout:
+            try:
+                int(checkin_y)
+                int(checkin_m)
+                int(checkin_d)
+                checkin_input = tk.Label(window, text= 'check!', fg="green")
+                checkin_input.grid(column=4, row=2, sticky='W', padx=10, pady=2)
+            except:
+                checkin_input = tk.Label(window, text= 'fecha inválida', fg="red")
+                checkin_input.grid(column=4, row=2, sticky='W', padx=10, pady=2)
+                valid = False
+            try:
+                int(checkout_y)
+                int(checkout_m)
+                int(checkout_d)
+                checkout_input = tk.Label(window, text= 'check!', fg="green")
+                checkout_input.grid(column=4, row=3, sticky='W', padx=10, pady=2)
+            except:
+                checkout_input = tk.Label(window, text= 'fecha inválida', fg="red")
+                checkout_input.grid(column=4, row=3, sticky='W', padx=10, pady=2)
+                valid = False
+            
+        else:
+            checkout_input = tk.Label(window, text= 'fecha inválida', fg="red")
+            checkout_input.grid(column=4, row=3, sticky='W', padx=10, pady=2)
+            checkin_input = tk.Label(window, text= 'fecha inválida', fg="red")
+            checkin_input.grid(column=4, row=2, sticky='W', padx=10, pady=2)
+            valid = False
     except:
-        checkin_input_error = tk.Label(window, text= 'Solo números', fg="red")
-        checkin_input_error.grid(column=4, row=2, sticky='W', padx=10, pady=2)
+        checkout_input = tk.Label(window, text= 'fecha inválida', fg="red")
+        checkout_input.grid(column=4, row=3, sticky='W', padx=10, pady=2)
+        checkin_input = tk.Label(window, text= 'fecha inválida', fg="red")
+        checkin_input.grid(column=4, row=2, sticky='W', padx=10, pady=2)
         valid = False
+        
 
-
-    try:
-        int(checkout_y)
-        int(checkout_m)
-        int(checkout_d)
-        checkout_input_error = tk.Label(window, text= 'check!', fg="green")
-        checkout_input_error.grid(column=4, row=3, sticky='W', padx=10, pady=2)
-    except:
-        checkout_input_error = tk.Label(window, text= 'Solo números', fg="red")
-        checkout_input_error.grid(column=4, row=3, sticky='W', padx=10, pady=2)
-        valid = False
-
+    
+            
 
     try:
         int(rooms)
-        rooms_input_error = tk.Label(window, text= 'check!', fg="green")
-        rooms_input_error.grid(column=4, row=4, sticky='W', padx=10, pady=2)
+        rooms_input = tk.Label(window, text= 'check!', fg="green")
+        rooms_input.grid(column=4, row=4, sticky='W', padx=10, pady=2)
     except:
-        rooms_input_error = tk.Label(window, text= 'Solo números', fg="red")
-        rooms_input_error.grid(column=4, row=4, sticky='W', padx=10, pady=2)
+        rooms_input = tk.Label(window, text= 'Solo números', fg="red")
+        rooms_input.grid(column=4, row=4, sticky='W', padx=10, pady=2)
         valid = False
-
 
     try:
         int(adults)
-        adults_input_error = tk.Label(window, text= 'check!', fg="green")
-        adults_input_error.grid(column=4, row=5, sticky='W', padx=10, pady=2)
+        adults_input = tk.Label(window, text= 'check!', fg="green")
+        adults_input.grid(column=4, row=5, sticky='W', padx=10, pady=2)
     except:
-        adults_input_error = tk.Label(window, text= 'Solo números', fg="red")
-        adults_input_error.grid(column=4, row=5, sticky='W', padx=10, pady=2)
+        adults_input = tk.Label(window, text= 'Solo números', fg="red")
+        adults_input.grid(column=4, row=5, sticky='W', padx=10, pady=2)
         valid = False
 
     try:
         int(children)
-        children_input_error = tk.Label(window, text= 'check!', fg="green")
-        children_input_error.grid(column=4, row=6, sticky='W', padx=10, pady=2)
+        children_input = tk.Label(window, text= 'check!', fg="green")
+        children_input.grid(column=4, row=6, sticky='W', padx=10, pady=2)
     except:
-        children_input_error = tk.Label(window, text= 'Solo números', fg="red")
-        children_input_error.grid(column=4, row=6, sticky='W', padx=10, pady=2)
+        children_input = tk.Label(window, text= 'Solo números', fg="red")
+        children_input.grid(column=4, row=6, sticky='W', padx=10, pady=2)
         valid = False
 
     try:
         int(babies)
-        babies_input_error = tk.Label(window, text= 'check!', fg="green")
-        babies_input_error.grid(column=4, row=7, sticky='W', padx=10, pady=2)
+        babies_input = tk.Label(window, text= 'check!', fg="green")
+        babies_input.grid(column=4, row=7, sticky='W', padx=10, pady=2)
     except:
-        babies_input_error = tk.Label(window, text= 'Solo números', fg="red")
-        babies_input_error.grid(column=4, row=7, sticky='W', padx=10, pady=2)
+        babies_input = tk.Label(window, text= 'Solo números', fg="red")
+        babies_input.grid(column=4, row=7, sticky='W', padx=10, pady=2)
         valid = False
 
-
-    today = date.today().strftime("%Y-%m-%d")
-    checkin = str(checkin_y)+'-'+str(checkin_m)+'-'+str(checkin_d)
-    checkout = str(checkout_y)+'-'+str(checkout_m)+'-'+str(checkout_d)
-
-    if checkin < today or checkout < today or checkout <= checkin:
-        date_error = tk.Label(window, text= 'Fechas erroneas', fg="red")
-        date_error.grid(column=2, row=8,  columnspan=4, sticky='W', padx=10, pady=2)
-        valid = False
-    else:
-        date_error = tk.Label(window, text= 'buscando...', fg="green")
-        date_error.grid(column=2, row=8,  columnspan=4, sticky='W', padx=10, pady=2)
-    
 
     if valid == True:
-        manage_search(city, checkin, checkout, int(rooms), int(adults), int(children), int(babies))
-
+        results = manage_search(city, checkin, checkout, int(rooms), int(adults), int(children), int(babies))
+        show_results1 = tk.Label(window, text=results)
+        show_results1.grid(column=0, row=10, columnspan=6, padx=10, pady=2)
+        show_results2 = tk.Label(window, text='Resultados guardados en generated.txt', fg="green")
+        show_results2.grid(column=0, row=11, columnspan=6, padx=10, pady=2)
 
 

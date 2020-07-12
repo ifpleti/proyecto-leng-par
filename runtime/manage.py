@@ -8,6 +8,8 @@ def manage_search(city, checkin, checkout, rooms, adults, children, babies):
 
     hosting = [] # Aquí residirán TODOS los resultados
 
+    total_start_time = time.time()
+
     ### Airbnb scraping ###
     start_time = time.time()
     airbnb_hosting_list = airbnb_scrape(city, checkin, checkout, rooms, adults, children, babies)
@@ -28,4 +30,12 @@ def manage_search(city, checkin, checkout, rooms, adults, children, babies):
 
     ### guardar alojamientos en generated.txt ###
     save_object_list(hosting, "generated.txt")
+
+
+
+    total_execution_time = time.time() - total_start_time
+    total_results = len(hosting)
+
+
+    return time_format(total_execution_time)+" | "+str(total_results)+" resultados"
 
