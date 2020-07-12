@@ -36,6 +36,10 @@ def manage_search(city, checkin, checkout, rooms, adults, children, babies):
     total_execution_time = time.time() - total_start_time
     total_results = len(hosting)
 
+    results = []
+    results.append(time_format(total_execution_time)+" | "+str(total_results)+" resultados")
+    results.append(hosting)
 
-    return time_format(total_execution_time)+" | "+str(total_results)+" resultados"
+
+    return results
 

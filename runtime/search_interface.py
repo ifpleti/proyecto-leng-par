@@ -188,9 +188,8 @@ checkout_y, checkout_m, checkout_d, rooms, adults, children, babies, window, tod
 
     if valid == True:
         results = manage_search(city, checkin, checkout, int(rooms), int(adults), int(children), int(babies))
-        show_results1 = tk.Label(window, text=results)
+        show_results1 = tk.Label(window, text=results[0])
         show_results1.grid(column=0, row=10, columnspan=6, padx=10, pady=2)
         show_results2 = tk.Label(window, text='Resultados guardados en generated.txt', fg="green")
         show_results2.grid(column=0, row=11, columnspan=6, padx=10, pady=2)
-
-
+        # foo_bar(results[1])
