@@ -10,9 +10,9 @@ def time_format(time):
     else:
         return str(int(minutes))+" minuto, "+str(round(float(seconds), 2))+" segundos"
 
-def save_object_list(object_list):
+def save_object_list(object_list, filename):
 
-    with open("generated.txt", "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         for i in range(len(object_list)):
             if i < 10:
                 f.write("################# "+str(i)+" #################\n\n")
