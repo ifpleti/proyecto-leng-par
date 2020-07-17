@@ -27,4 +27,4 @@ proyecto-leng-par
         └── requirements.txt
 ```
 
-El main llama a la interfáz de busqueda que se encuentra en search_interface.py, que usa a manage.py para acceder al resto de los modulos, ejecutar el scraping y por último, se llama a la ventana de post_search_interface.py para filtrar y ordenar, que a su vez también se comunica con manage.py para la ejecución de las funciones necesarias para las operaciones de filtro y ordenamiento sobre los datos.
+El main llama a la interfaz de busqueda que se encuentra en search_interface.py, que usa a manage.py para acceder al resto de los modulos, ejecutar el scraping y por último, se llama a la ventana de post_search_interface.py para filtrar y ordenar, que a su vez también se comunica con manage.py para la ejecución de las funciones necesarias para las operaciones de filtro y ordenamiento sobre los datos.
